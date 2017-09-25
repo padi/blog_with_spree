@@ -1,24 +1,35 @@
-# README
+# Blog With Spree
 
-This README would normally document whatever steps are necessary to get the
-application up and running.
+Sample app that demonstrates a spree issue: https://github.com/spree/spree/issues/8298
+The issue was previously deemed fixed but I'm not sure which tests cover it,
+since https://github.com/spree/spree/pull/8297 did not have a test.
 
-Things you may want to cover:
+## Local Installation
 
-* Ruby version
+```
+git clone git@github.com:padi/blog_with_spree.git
+cd blog_with_spree
+bundle install
+```
 
-* System dependencies
+## Test that demonstrates the bug
 
-* Configuration
+```
+DISABLE_SPRING=1 rails test test/models/application_record_test.rb
+```
 
-* Database creation
+The temporary fix is created in: `app/models/application_record.rb`,
+specifically overriding `ApplicationRecord.belongs_to_required_by_default`
 
-* Database initialization
+```ruby
+class ApplicationRecord < ActiveRecord::Base
+  self.abstract_class = true
+   # Temporary fix by opting out from mattr_accessor :belongs_to_required_by_default
+  def self.belongs_to_required_by_default
+    true
+  end
+end
+```
 
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+... but that fix would only work for models that inherit from ApplicationRecord,
+which may not include other models from other engines.
